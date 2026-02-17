@@ -1,0 +1,11 @@
+streamlit
+pandas
+plotly
+folium
+streamlit-folium
+sentence-transformers
+scikit-learn
+transformers
+torch
+python-dotenv
+openai

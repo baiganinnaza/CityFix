@@ -1,0 +1,33 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ── Model (too large for git, ~900MB) ──
+local_model/
+
+# ── Environment ──
+.env
+.venv/
+venv/
+env/
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Streamlit ──
+.streamlit/secrets.toml
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Gemini Agent ──
+.gemini/
