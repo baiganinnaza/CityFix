@@ -40,7 +40,7 @@ st.set_page_config(
     page_title="CityFix Almaty",
     page_icon="🏙️",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # Load Global Styles
@@ -62,7 +62,7 @@ if "complaints_data" not in st.session_state:
     st.session_state.complaints_data = pd.DataFrame(data)
 
 if "current_page" not in st.session_state:
-    st.session_state.current_page = "Landing"
+    st.session_state.current_page = "Home"
 
 df = st.session_state.complaints_data
 
@@ -75,10 +75,13 @@ def go_to(page):
 def show_landing():
     render_template("landing_hero")
     
-    _, cta_col, _ = st.columns([2, 1, 2])
-    with cta_col:
-        if st.button("Launch System", use_container_width=True, type="primary"):
+    col_cta1, col_cta2 = st.columns([1, 1])
+    with col_cta1:
+        if st.button("Launch System Map", use_container_width=True, type="primary"):
             go_to("Map")
+    with col_cta2:
+        if st.button("Analytics Hub", use_container_width=True):
+            go_to("Analytics")
 
     st.markdown("<br>", unsafe_allow_html=True)
     render_template("feature_grid")
@@ -160,35 +163,88 @@ def show_map():
                             st.error(f"Rejected: {result['Reason']}")
 
 def show_analytics():
-    render_template("page_header", icon="📊", title="Analytics", subtitle="Consolidated monitoring data")
+    render_template("analytics_summary")
     
     if df.empty:
-        st.info("No data available.")
+        st.info("No data available for analysis.")
+        return
+
+    with st.expander("🔍 Filter Analytics Data", expanded=False):
+        f_col1, f_col2 = st.columns(2)
+        with f_col1:
+            categories = st.multiselect("Filter by Category", df["Category"].unique(), default=df["Category"].unique())
+        with f_col2:
+            urgencies = st.multiselect("Filter by Urgency", df["Urgency"].unique(), default=df["Urgency"].unique())
+        
+        filtered_df = df[df["Category"].isin(categories) & df["Urgency"].isin(urgencies)]
+
+    if filtered_df.empty:
+        st.warning("No data matches the selected filters.")
         return
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        render_template("card_header", title="Total", subtitle=len(df))
+        render_template("card_header", title="Scope", subtitle=f"{len(filtered_df)} Items")
     with c2:
-        render_template("card_header", title="Critical", subtitle=len(df[df["Urgency"] == "Красный"]))
+        render_template("card_header", title="Critical", subtitle=len(filtered_df[filtered_df["Urgency"] == "Красный"]))
     with c3:
-        render_template("card_header", title="Warning", subtitle=len(df[df["Urgency"] == "Желтый"]))
+        render_template("card_header", title="Warning", subtitle=len(filtered_df[filtered_df["Urgency"] == "Желтый"]))
     with c4:
-        render_template("card_header", title="Normal", subtitle=len(df[df["Urgency"] == "Зеленый"]))
+        render_template("card_header", title="Normal", subtitle=len(filtered_df[filtered_df["Urgency"] == "Зеленый"]))
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     ch1, ch2 = st.columns(2)
+    
     with ch1:
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        fig_pie = px.pie(df, names="Category", hole=0.5, title="By Category")
-        st.plotly_chart(fig_pie, use_container_width=True)
+        fig_tree = px.treemap(
+            filtered_df, 
+            path=['Category', 'Urgency'],
+            color='Urgency_Level',
+            color_continuous_scale='RdYlGn_r',
+            title="Density Analysis (Category > Urgency)"
+        )
+        fig_tree.update_layout(
+            margin=dict(t=50, l=10, r=10, b=10),
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(family="Inter")
+        )
+        st.plotly_chart(fig_tree, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
+
     with ch2:
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        fig_bar = px.bar(df, x="Category", color="Urgency", title="Urgency Split")
+        fig_bar = px.bar(
+            filtered_df, x="Category", color="Urgency",
+            color_discrete_map={"Красный": "#EF4444", "Желтый": "#F59E0B", "Зеленый": "#10B981"},
+            title="Volume by Category"
+        )
+        fig_bar.update_layout(
+            margin=dict(t=50, l=10, r=10, b=10),
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(family="Inter")
+        )
         st.plotly_chart(fig_bar, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    render_template("card_header", title="Detailed Records", subtitle="Complete dataset view and export")
+    
+    st.dataframe(
+        filtered_df[["Category", "Urgency", "Text", "Lat", "Lon"]],
+        use_container_width=True,
+        hide_index=True
+    )
+
+    alerts = logic.check_red_zones(df)
+    if alerts:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.error(f"⚠️ {len(alerts)} High-Risk Cluster(s) Detected in System")
+        for a in alerts:
+            st.info(a)
 
 # --- Sidebar ---
 
@@ -197,14 +253,18 @@ def show_sidebar():
         render_template("sidebar_header")
         st.markdown("<br>", unsafe_allow_html=True)
         
-        if st.button("Home Page", use_container_width=True):
-            go_to("Landing")
+        pages = ["Home", "Map & Issues", "Analytics"]
+        current_idx = 0
+        if st.session_state.current_page == "Map":
+            current_idx = 1
+        elif st.session_state.current_page == "Analytics":
+            current_idx = 2
+            
+        sel = st.radio("NAVIGATION", pages, index=current_idx)
         
-        st.divider()
-        sel = st.radio("NAVIGATION", ["Map & Issues", "Analytics"], 
-                       index=0 if st.session_state.current_page == "Map" else 1)
-        
-        if sel == "Map & Issues" and st.session_state.current_page != "Map":
+        if sel == "Home" and st.session_state.current_page != "Home":
+            go_to("Home")
+        elif sel == "Map & Issues" and st.session_state.current_page != "Map":
             go_to("Map")
         elif sel == "Analytics" and st.session_state.current_page != "Analytics":
             go_to("Analytics")
@@ -213,11 +273,11 @@ def show_sidebar():
 
 # --- Routing ---
 
-if st.session_state.current_page == "Landing":
+show_sidebar()
+
+if st.session_state.current_page == "Home":
     show_landing()
-else:
-    show_sidebar()
-    if st.session_state.current_page == "Map":
-        show_map()
-    elif st.session_state.current_page == "Analytics":
-        show_analytics()
+elif st.session_state.current_page == "Map":
+    show_map()
+elif st.session_state.current_page == "Analytics":
+    show_analytics()
