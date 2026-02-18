@@ -1,59 +1,60 @@
 # 🏙️ CityFix Almaty AI
 
-Интеллектуальная платформа мониторинга городских проблем города Алматы с использованием ИИ.
+Professional intelligent platform for monitoring and classifying urban infrastructure problems in Almaty, powered by Large Language Models (LLM).
 
-## ✨ Возможности
+## ✨ Key Features
 
-- **🗺️ Интерактивная карта** — отмечайте проблемы прямо на карте с точными координатами
-- **🧠 AI-классификация** — нейросеть mDeBERTa автоматически определяет категорию и срочность
-- **📊 Аналитика** — дашборд с визуализацией и автоматическими алертами опасных зон
-- **🏠 Landing Page** — современная главная страница
+- **🧠 AI-Powered Classification**: Instant analysis of complaints using Together AI (Apriel-1.6-15b) to determine category, urgency, and validity.
+- **🗺️ Interactive Map Hub**: Real-time visualization of city issues with heatmaps and marker clustering.
+- **📊 Advanced Analytics Hub**: Deep insights through hierarchical charts (Treemaps), volume metrics, and interactive data filtering.
+- **🚨 Intelligent Alerts**: Automatic detection of high-risk clusters ("Red Zones") to identify systemic infrastructure failures.
+- **🎨 Professional UI**: Sleek, glassmorphism-inspired design with a modular template system.
 
-## 🚀 Установка
+## 📁 Project Structure
 
 ```bash
-# 1. Установите зависимости
-pip install -r requirements.txt
-
-# 2. Скачайте модель (~900 МБ)
-python download_model.py
-
-# 3. Запустите приложение
-streamlit run app.py
-```
-
-## 📁 Структура проекта
-
-```
 CityProblems/
-├── app.py              # UI (Streamlit)
-├── logic.py            # AI-логика классификации
-├── download_model.py   # Скрипт загрузки модели
-├── requirements.txt    # Зависимости
-├── .env                # API-ключи (не в git)
-├── .streamlit/
-│   └── config.toml     # Тема оформления
-└── local_model/        # Модель mDeBERTa (не в git)
+├── backend/            # Business Logic & AI
+│   ├── .env            # Core configuration (API Keys)
+│   └── logic.py        # Classification engine & Cluster analysis
+├── frontend/           # Presentation Layer (Streamlit)
+│   ├── templates/      # Modular HTML UI components
+│   ├── index.css       # Global design system
+│   └── main.py         # App entry point & Navigation
+├── README.md           # Project documentation
+└── requirements.txt    # Project dependencies
 ```
 
-## 🧠 Модель
+## 🚀 Getting Started
 
-Используется **MoritzLaurer/mDeBERTa-v3-base-mnli-xnli** — мультиязычная модель для zero-shot классификации. Работает полностью локально, без интернета (после скачивания).
+1. **Setup Environment**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## 📋 Категории жалоб
+2. **Configure API**:
+   Create `backend/.env` and add your `TOGETHER_API_KEY`.
 
-| Категория | Примеры |
-|-----------|---------|
-| Дороги | Ямы, трещины, проблемы с асфальтом |
-| ЖКХ | Вода, отопление, канализация, мусор |
-| Свет | Неработающие фонари, темные улицы |
-| Опасность | Обрыв проводов, открытые люки, утечка газа |
-| Другое | Скамейки, площадки, благоустройство |
+3. **Run Application**:
+   From the project root:
+   ```bash
+   streamlit run frontend/main.py
+   ```
 
-## 🎨 Технологии
+## 📋 Categorization Schema
 
-- **Streamlit** — веб-интерфейс
-- **Folium** — интерактивные карты
-- **Plotly** — визуализация данных
-- **Transformers (HuggingFace)** — AI-модель
-- **mDeBERTa** — мультиязычный NLI
+| Category | Description |
+|-----------|-------------|
+| **Дороги** | Potholes, asphalt cracks, crossings, sidewalks. |
+| **ЖКХ** | Water, heating, sewage, garbage, elevators. |
+| **Свет** | Broken street lights or traffic lights. |
+| **Опасность** | Direct threats (open manholes, gas leaks, fires). |
+| **Другое** | Landscaping, benches, playgrounds. |
+
+## 🛠️ Technical Stack
+
+- **Streamlit**: Modern reactive web interface.
+- **Together AI**: High-performance reasoning LLM for classification.
+- **Folium**: Geographical data visualization.
+- **Plotly**: Advanced data analytics and interactive charting.
+- **CSS3/HTML5**: Custom design system with modular templates.
